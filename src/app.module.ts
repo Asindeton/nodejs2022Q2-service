@@ -3,9 +3,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { UuidMiddleware } from './shared/uuid.middleware';
+import { TrackModule } from './track/track.module';
 
 @Module({
-  imports: [UserModule],
+  imports: [UserModule, TrackModule],
   controllers: [AppController],
   providers: [AppService],
 })
