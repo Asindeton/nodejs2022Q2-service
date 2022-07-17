@@ -1,0 +1,30 @@
+version: '3.9'
+services:
+  nest-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - ${PORT}:${PORT}
+    depends_on:
+      - db
+
+  db:
+    image: postgres:14.4-alpine
+    restart: always
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - ${PG_ADMIN_PORT}:${PG_ADMIN_PORT}

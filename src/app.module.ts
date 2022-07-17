@@ -1,6 +1,4 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { UuidMiddleware } from './shared/uuid.middleware';
 import { TrackModule } from './track/track.module';
@@ -16,8 +14,8 @@ import { FavoritesModule } from './favorites/favorites.module';
     AlbumModule,
     FavoritesModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): any {
