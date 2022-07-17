@@ -1,18 +1,35 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  forwardRef,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { ErrorResponseMessage } from '../../shared/error.interface';
 import { v4 as uuidv4 } from 'uuid';
 import { IArtist, ICreateArtistDto } from '../interface/artist.interface';
+import { AlbumService } from '../../album/services/album.service';
+import { FavoritesService } from '../../favorites/services/favorites.service';
+import { TrackService } from '../../track/sevices/track.service';
 
 @Injectable()
 export class ArtistService {
-  private readonly artists: IArtist[] = [];
+  static artists: IArtist[] = [];
 
+  constructor(
+    @Inject(forwardRef(() => AlbumService))
+    private albumService: AlbumService,
+    @Inject(forwardRef(() => TrackService))
+    private trackService: TrackService,
+    @Inject(forwardRef(() => FavoritesService))
+    private favoritesService: FavoritesService,
+  ) {}
   getAllArtists() {
-    return this.artists;
+    return ArtistService.artists;
   }
 
   getArtistByID(id: string): IArtist {
-    const findArtist = this.artists.find((artist) => artist.id == id);
+    const findArtist = ArtistService.artists.find((artist) => artist.id == id);
     if (findArtist) {
       return findArtist;
     } else {
@@ -29,22 +46,24 @@ export class ArtistService {
       name,
       grammy,
     };
-    this.artists.push(newArtist);
+    ArtistService.artists.push(newArtist);
     return newArtist;
   }
 
   updateArtist(id: string, { name, grammy }: ICreateArtistDto): IArtist {
-    const indexOfArtist = this.artists.findIndex((artist) => artist.id == id);
+    const indexOfArtist = ArtistService.artists.findIndex(
+      (artist) => artist.id == id,
+    );
     if (indexOfArtist !== -1) {
-      const oldArtistData = this.artists[indexOfArtist];
+      const oldArtistData = ArtistService.artists[indexOfArtist];
 
-      this.artists[indexOfArtist] = {
+      ArtistService.artists[indexOfArtist] = {
         id: oldArtistData.id,
         name: name ?? oldArtistData.name,
         grammy: grammy ?? oldArtistData.grammy,
       };
 
-      return this.artists[indexOfArtist];
+      return ArtistService.artists[indexOfArtist];
     } else {
       throw new HttpException(
         ErrorResponseMessage.ARTIST_NOT_FOUNDED,
@@ -53,15 +72,23 @@ export class ArtistService {
     }
   }
   deleteArtist(id) {
-    const indexOfArtist = this.artists.findIndex((artist) => artist.id == id);
+    const indexOfArtist = ArtistService.artists.findIndex(
+      (artist) => artist.id == id,
+    );
     if (indexOfArtist == -1) {
       throw new HttpException(
         ErrorResponseMessage.TRACK_NOT_FOUNDED,
         HttpStatus.NOT_FOUND,
       );
     }
-
-    const removedArtist = this.artists.splice(indexOfArtist, 1)[0];
+    TrackService.tracks.forEach((el, index) => {
+      if (el.artistId === id) {
+        TrackService.tracks[index].artistId = null;
+      }
+    });
+    FavoritesService.favorites.artists =
+      FavoritesService.favorites.artists.filter((el) => el.id !== id);
+    const removedArtist = ArtistService.artists.splice(indexOfArtist, 1)[0];
     if (removedArtist) {
       return removedArtist;
     }

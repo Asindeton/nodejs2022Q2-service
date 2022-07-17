@@ -1,18 +1,34 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  forwardRef,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { ICreateAlbumDto, IAlbum } from '../interface/album.interface';
 import { ErrorResponseMessage } from '../../shared/error.interface';
 import { v4 as uuidv4 } from 'uuid';
+import { FavoritesService } from '../../favorites/services/favorites.service';
+import { TrackService } from '../../track/sevices/track.service';
+import { ArtistService } from '../../artist/services/artist.service';
 
 @Injectable()
 export class AlbumService {
-  private readonly album: IAlbum[] = [];
-
+  static album: IAlbum[] = [];
+  constructor(
+    @Inject(forwardRef(() => ArtistService))
+    private artistService: ArtistService,
+    @Inject(forwardRef(() => TrackService))
+    private trackService: TrackService,
+    @Inject(forwardRef(() => FavoritesService))
+    private favoritesService: FavoritesService,
+  ) {}
   getAllAlbum() {
-    return this.album;
+    return AlbumService.album;
   }
 
   getAlbumByID(id: string): IAlbum {
-    const findAlbum = this.album.find((user) => user.id == id);
+    const findAlbum = AlbumService.album.find((user) => user.id == id);
     if (findAlbum) {
       return findAlbum;
     } else {
@@ -30,23 +46,23 @@ export class AlbumService {
       year,
       artistId: artistId ?? null,
     };
-    this.album.push(newAlbum);
+    AlbumService.album.push(newAlbum);
     return newAlbum;
   }
 
   updateAlbum(id: string, { name, artistId, year }: ICreateAlbumDto): IAlbum {
-    const indexOfAlbum = this.album.findIndex((user) => user.id == id);
+    const indexOfAlbum = AlbumService.album.findIndex((user) => user.id == id);
     if (indexOfAlbum !== -1) {
-      const oldAlbumData = this.album[indexOfAlbum];
+      const oldAlbumData = AlbumService.album[indexOfAlbum];
 
-      this.album[indexOfAlbum] = {
+      AlbumService.album[indexOfAlbum] = {
         id: oldAlbumData.id,
         name: name ?? oldAlbumData.name,
         year: year ?? oldAlbumData.year,
         artistId: artistId ?? oldAlbumData.artistId,
       };
 
-      return this.album[indexOfAlbum];
+      return AlbumService.album[indexOfAlbum];
     } else {
       throw new HttpException(
         ErrorResponseMessage.ALBUM_NOT_FOUNDED,
@@ -55,7 +71,9 @@ export class AlbumService {
     }
   }
   deleteAlbum(id) {
-    const indexOfAlbum = this.album.findIndex((track) => track.id == id);
+    const indexOfAlbum = AlbumService.album.findIndex(
+      (track) => track.id == id,
+    );
     if (indexOfAlbum == -1) {
       throw new HttpException(
         ErrorResponseMessage.ALBUM_NOT_FOUNDED,
@@ -63,7 +81,16 @@ export class AlbumService {
       );
     }
 
-    const removedAlbum = this.album.splice(indexOfAlbum, 1)[0];
+    TrackService.tracks.forEach((el, index) => {
+      if (el.albumId === id) {
+        TrackService.tracks[index].albumId = null;
+      }
+    });
+
+    FavoritesService.favorites.albums =
+      FavoritesService.favorites.albums.filter((el) => el.id !== id);
+
+    const removedAlbum = AlbumService.album.splice(indexOfAlbum, 1)[0];
     if (removedAlbum) {
       return removedAlbum;
     }

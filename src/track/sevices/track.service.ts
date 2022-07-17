@@ -1,18 +1,34 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  forwardRef,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { ErrorResponseMessage } from '../../shared/error.interface';
 import { v4 as uuidv4 } from 'uuid';
 import { ICreateTrackDto, ITrack } from '../interface/track.interface';
+import { FavoritesService } from '../../favorites/services/favorites.service';
+import { AlbumService } from '../../album/services/album.service';
+import { ArtistService } from '../../artist/services/artist.service';
 
 @Injectable()
 export class TrackService {
-  private readonly tracks: ITrack[] = [];
-
+  static tracks: ITrack[] = [];
+  constructor(
+    @Inject(forwardRef(() => ArtistService))
+    private artistService: ArtistService,
+    @Inject(forwardRef(() => AlbumService))
+    private albumService: AlbumService,
+    @Inject(forwardRef(() => FavoritesService))
+    private favoritesService: FavoritesService,
+  ) {}
   getAllTrack() {
-    return this.tracks;
+    return TrackService.tracks;
   }
 
   getTrackByID(id: string): ITrack {
-    const findTrack = this.tracks.find((user) => user.id == id);
+    const findTrack = TrackService.tracks.find((user) => user.id == id);
     if (findTrack) {
       return findTrack;
     } else {
@@ -31,7 +47,7 @@ export class TrackService {
       albumId: albumId ?? null,
       artistId: artistId ?? null,
     };
-    this.tracks.push(newTrack);
+    TrackService.tracks.push(newTrack);
     return newTrack;
   }
 
@@ -39,11 +55,11 @@ export class TrackService {
     id: string,
     { name, duration, albumId, artistId }: ICreateTrackDto,
   ): ITrack {
-    const indexOfTrack = this.tracks.findIndex((user) => user.id == id);
+    const indexOfTrack = TrackService.tracks.findIndex((user) => user.id == id);
     if (indexOfTrack !== -1) {
-      const oldTrackData = this.tracks[indexOfTrack];
+      const oldTrackData = TrackService.tracks[indexOfTrack];
 
-      this.tracks[indexOfTrack] = {
+      TrackService.tracks[indexOfTrack] = {
         id: oldTrackData.id,
         name: name ?? oldTrackData.name,
         duration: duration ?? oldTrackData.duration,
@@ -51,7 +67,7 @@ export class TrackService {
         artistId: artistId ?? oldTrackData.artistId,
       };
 
-      return this.tracks[indexOfTrack];
+      return TrackService.tracks[indexOfTrack];
     } else {
       throw new HttpException(
         ErrorResponseMessage.TRACK_NOT_FOUNDED,
@@ -60,8 +76,9 @@ export class TrackService {
     }
   }
   deleteTrack(id) {
-    const indexOfTrack = this.tracks.findIndex((track) => track.id == id);
-    console.log(indexOfTrack);
+    const indexOfTrack = TrackService.tracks.findIndex(
+      (track) => track.id == id,
+    );
     if (indexOfTrack == -1) {
       throw new HttpException(
         ErrorResponseMessage.TRACK_NOT_FOUNDED,
@@ -69,7 +86,11 @@ export class TrackService {
       );
     }
 
-    const removedTrack = this.tracks.splice(indexOfTrack, 1)[0];
+    FavoritesService.favorites.tracks =
+      FavoritesService.favorites.tracks.filter((el) => el.id !== id);
+
+    const removedTrack = TrackService.tracks.splice(indexOfTrack, 1)[0];
+
     if (removedTrack) {
       return removedTrack;
     }

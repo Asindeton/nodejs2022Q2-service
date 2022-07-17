@@ -5,4 +5,6 @@ export enum ErrorResponseMessage {
   TRACK_NOT_FOUNDED = 'Track not founded',
   ARTIST_NOT_FOUNDED = 'Artist not founded',
   ALBUM_NOT_FOUNDED = 'Artist not founded',
+  IS_NOT_FAVORITE = 'Corresponding item is not favorite',
+  ITEM_NOT_FOUNDED = 'Item does not exist',
 }
