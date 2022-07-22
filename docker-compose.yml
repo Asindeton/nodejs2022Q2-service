@@ -1,30 +1,44 @@
-version: '3.9'
+version: '3.8'
+
+networks:
+  nodejs2022q2:
+    name: nodejs2022q2
+    driver: bridge
+
 services:
-  nest-api:
+  api:
     build:
-      context: .
       dockerfile: Dockerfile
-    restart: always
+      context: .
+      # Only will build development stage from our dockerfile
+      target: ${BUILD_TYPE}
+    volumes:
+      - .:/usr/src/app
+      - ${PROJECT_VOLUME_PATH}/usr/src/app/node_modules
+    env_file:
+      - .env
+    # Run a command against the development stage of the image
+    command: npm run start:dev
     ports:
       - ${PORT}:${PORT}
     depends_on:
-      - db
+      - postgres
+    networks:
+      - nodejs2022q2
 
-  db:
+  postgres:
     image: postgres:14.4-alpine
     restart: always
-    ports:
-      - ${DB_PORT}:${DB_PORT}
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-
-  pgadmin:
-    image: dpage/pgadmin4
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     ports:
-      - ${PG_ADMIN_PORT}:${PG_ADMIN_PORT}
+      - ${DB_PORT}:${DB_PORT}
+    volumes:
+      - docker-nest-postgres:/var/lib/postgresql/data
+    networks:
+      - nodejs2022q2
+
+volumes:
+  docker-nest-postgres:
