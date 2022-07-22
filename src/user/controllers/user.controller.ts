@@ -19,20 +19,18 @@ export class UserController {
   constructor(private userService: UserService) {}
 
   @Get()
-  async getAllUsers(): Promise<IUserResponse[]> {
+  async getAllUsers() {
     return this.userService.getAllUsers();
   }
 
   @Get(':id')
-  async getUserById(@Param() params): Promise<IUserResponse> {
+  async getUserById(@Param() params) {
     return this.userService.getUserByID(params.id);
   }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async createUser(
-    @Body() createUserDto: CreateUserDto,
-  ): Promise<IUserResponse> {
+  async createUser(@Body() createUserDto: CreateUserDto) {
     return this.userService.createUser(createUserDto);
   }
 
