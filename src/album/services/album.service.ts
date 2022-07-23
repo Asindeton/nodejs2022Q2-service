@@ -11,24 +11,22 @@ import { v4 as uuidv4 } from 'uuid';
 import { FavoritesService } from '../../favorites/services/favorites.service';
 import { TrackService } from '../../track/sevices/track.service';
 import { ArtistService } from '../../artist/services/artist.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class AlbumService {
-  static album: IAlbum[] = [];
   constructor(
-    @Inject(forwardRef(() => ArtistService))
-    private artistService: ArtistService,
-    @Inject(forwardRef(() => TrackService))
-    private trackService: TrackService,
     @Inject(forwardRef(() => FavoritesService))
     private favoritesService: FavoritesService,
+    public prisma: PrismaService,
   ) {}
-  getAllAlbum() {
-    return AlbumService.album;
+
+  async getAllAlbum() {
+    return await this.prisma.album.findMany();
   }
 
-  getAlbumByID(id: string): IAlbum {
-    const findAlbum = AlbumService.album.find((user) => user.id == id);
+  async getAlbumByID(id: string) {
+    const findAlbum = this.prisma.album.findFirst({ where: { id } });
     if (findAlbum) {
       return findAlbum;
     } else {
@@ -39,30 +37,17 @@ export class AlbumService {
     }
   }
 
-  createAlbum({ name, artistId, year }: ICreateAlbumDto) {
-    const newAlbum: IAlbum = {
-      id: uuidv4(), // uuid v4
-      name,
-      year,
-      artistId: artistId ?? null,
-    };
-    AlbumService.album.push(newAlbum);
-    return newAlbum;
+  async createAlbum({ name, artistId, year }: ICreateAlbumDto) {
+    return await this.prisma.album.create({ data: { name, artistId, year } });
   }
 
-  updateAlbum(id: string, { name, artistId, year }: ICreateAlbumDto): IAlbum {
-    const indexOfAlbum = AlbumService.album.findIndex((user) => user.id == id);
-    if (indexOfAlbum !== -1) {
-      const oldAlbumData = AlbumService.album[indexOfAlbum];
-
-      AlbumService.album[indexOfAlbum] = {
-        id: oldAlbumData.id,
-        name: name ?? oldAlbumData.name,
-        year: year ?? oldAlbumData.year,
-        artistId: artistId ?? oldAlbumData.artistId,
-      };
-
-      return AlbumService.album[indexOfAlbum];
+  async updateAlbum(id: string, { name, artistId, year }: ICreateAlbumDto) {
+    const indexOfAlbum = await this.prisma.album.findFirst({ where: { id } });
+    if (indexOfAlbum) {
+      return await this.prisma.album.update({
+        where: { id },
+        data: { name, artistId, year },
+      });
     } else {
       throw new HttpException(
         ErrorResponseMessage.ALBUM_NOT_FOUNDED,
@@ -70,29 +55,18 @@ export class AlbumService {
       );
     }
   }
-  deleteAlbum(id) {
-    const indexOfAlbum = AlbumService.album.findIndex(
-      (track) => track.id == id,
-    );
-    if (indexOfAlbum == -1) {
+  async deleteAlbum(id) {
+    const removedAlbum = await this.prisma.album.findFirst({ where: { id } });
+    if (!removedAlbum) {
       throw new HttpException(
         ErrorResponseMessage.ALBUM_NOT_FOUNDED,
         HttpStatus.NOT_FOUND,
       );
     }
 
-    TrackService.tracks.forEach((el, index) => {
-      if (el.albumId === id) {
-        TrackService.tracks[index].albumId = null;
-      }
-    });
-
-    FavoritesService.favorites.albums =
-      FavoritesService.favorites.albums.filter((el) => el.id !== id);
-
-    const removedAlbum = AlbumService.album.splice(indexOfAlbum, 1)[0];
+    await this.favoritesService.deleteFavorites('album', id);
     if (removedAlbum) {
-      return removedAlbum;
+      return this.prisma.album.delete({ where: { id } });
     }
   }
 }

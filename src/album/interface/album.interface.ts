@@ -4,5 +4,5 @@ export interface IAlbum extends ICreateAlbumDto {
 export interface ICreateAlbumDto {
   name: string;
   year: number;
-  artistId: string | null; // refers to Artist
+  artistId: string; // refers to Artist
 }

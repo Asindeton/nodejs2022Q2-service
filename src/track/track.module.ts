@@ -4,9 +4,16 @@ import { TrackService } from './sevices/track.service';
 import { FavoritesService } from '../favorites/services/favorites.service';
 import { AlbumService } from '../album/services/album.service';
 import { ArtistService } from '../artist/services/artist.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Module({
   controllers: [TrackController],
-  providers: [TrackService, FavoritesService, AlbumService, ArtistService],
+  providers: [
+    TrackService,
+    FavoritesService,
+    AlbumService,
+    ArtistService,
+    PrismaService,
+  ],
 })
 export class TrackModule {}

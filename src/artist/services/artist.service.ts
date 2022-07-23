@@ -11,25 +11,21 @@ import { IArtist, ICreateArtistDto } from '../interface/artist.interface';
 import { AlbumService } from '../../album/services/album.service';
 import { FavoritesService } from '../../favorites/services/favorites.service';
 import { TrackService } from '../../track/sevices/track.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class ArtistService {
-  static artists: IArtist[] = [];
-
   constructor(
-    @Inject(forwardRef(() => AlbumService))
-    private albumService: AlbumService,
-    @Inject(forwardRef(() => TrackService))
-    private trackService: TrackService,
     @Inject(forwardRef(() => FavoritesService))
     private favoritesService: FavoritesService,
+    private prisma: PrismaService,
   ) {}
-  getAllArtists() {
-    return ArtistService.artists;
+  async getAllArtists() {
+    return await this.prisma.artist.findMany();
   }
 
-  getArtistByID(id: string): IArtist {
-    const findArtist = ArtistService.artists.find((artist) => artist.id == id);
+  async getArtistByID(id: string) {
+    const findArtist = await this.prisma.artist.findFirst({ where: { id } });
     if (findArtist) {
       return findArtist;
     } else {
@@ -40,30 +36,18 @@ export class ArtistService {
     }
   }
 
-  createArtist({ name, grammy }: ICreateArtistDto) {
-    const newArtist: IArtist = {
-      id: uuidv4(), // uuid v4
-      name,
-      grammy,
-    };
-    ArtistService.artists.push(newArtist);
-    return newArtist;
+  async createArtist({ name, grammy }: ICreateArtistDto) {
+    return await this.prisma.artist.create({ data: { name, grammy } });
   }
 
-  updateArtist(id: string, { name, grammy }: ICreateArtistDto): IArtist {
-    const indexOfArtist = ArtistService.artists.findIndex(
-      (artist) => artist.id == id,
-    );
-    if (indexOfArtist !== -1) {
-      const oldArtistData = ArtistService.artists[indexOfArtist];
+  async updateArtist(id: string, { name, grammy }: ICreateArtistDto) {
+    const artist = await this.prisma.artist.findFirst({ where: { id } });
 
-      ArtistService.artists[indexOfArtist] = {
-        id: oldArtistData.id,
-        name: name ?? oldArtistData.name,
-        grammy: grammy ?? oldArtistData.grammy,
-      };
-
-      return ArtistService.artists[indexOfArtist];
+    if (artist) {
+      return await this.prisma.artist.update({
+        where: { id },
+        data: { name, grammy },
+      });
     } else {
       throw new HttpException(
         ErrorResponseMessage.ARTIST_NOT_FOUNDED,
@@ -71,24 +55,16 @@ export class ArtistService {
       );
     }
   }
-  deleteArtist(id) {
-    const indexOfArtist = ArtistService.artists.findIndex(
-      (artist) => artist.id == id,
-    );
-    if (indexOfArtist == -1) {
+  async deleteArtist(id) {
+    const indexOfArtist = await this.prisma.artist.findFirst({ where: { id } });
+    if (!indexOfArtist) {
       throw new HttpException(
         ErrorResponseMessage.TRACK_NOT_FOUNDED,
         HttpStatus.NOT_FOUND,
       );
     }
-    TrackService.tracks.forEach((el, index) => {
-      if (el.artistId === id) {
-        TrackService.tracks[index].artistId = null;
-      }
-    });
-    FavoritesService.favorites.artists =
-      FavoritesService.favorites.artists.filter((el) => el.id !== id);
-    const removedArtist = ArtistService.artists.splice(indexOfArtist, 1)[0];
+    await this.favoritesService.deleteFavorites('artist', id);
+    const removedArtist = await this.prisma.artist.delete({ where: { id } });
     if (removedArtist) {
       return removedArtist;
     }
