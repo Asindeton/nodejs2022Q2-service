@@ -70,3 +70,9 @@ npm run format
 Press <kbd>F5</kbd> to debug.
 
 For more information, visit: https://code.visualstudio.com/docs/editor/debugging
+
+https://www.tomray.dev/nestjs-docker-compose-postgres
+
+npx prisma migrate dev --name init
+
+npx prisma studio
