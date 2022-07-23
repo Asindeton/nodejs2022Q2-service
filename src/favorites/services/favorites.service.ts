@@ -1,15 +1,5 @@
-import {
-  forwardRef,
-  HttpException,
-  HttpStatus,
-  Inject,
-  Injectable,
-} from '@nestjs/common';
-import { IFavoritesRepsonse } from '../interface/favorites.interface';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ErrorResponseMessage } from '../../shared/error.interface';
-import { ArtistService } from '../../artist/services/artist.service';
-import { AlbumService } from '../../album/services/album.service';
-import { TrackService } from '../../track/sevices/track.service';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -51,12 +41,12 @@ export class FavoritesService {
           const favsArtist = await this.prisma.favorite.findMany();
           if (!favsArtist.length) {
             const createdFavs = await this.prisma.favorite.create({ data: {} });
-            await this.prisma.artist.update({
+            return await this.prisma.artist.update({
               where: { id },
               data: { favoriteId: createdFavs.id },
             });
           } else {
-            await this.prisma.artist.update({
+            return await this.prisma.artist.update({
               where: { id },
               data: { favoriteId: favsArtist[0].id },
             });
@@ -70,12 +60,12 @@ export class FavoritesService {
           const favsAlbum = await this.prisma.favorite.findMany();
           if (!favsAlbum.length) {
             const createdFavs = await this.prisma.favorite.create({ data: {} });
-            await this.prisma.album.update({
+            return await this.prisma.album.update({
               where: { id },
               data: { favoriteId: createdFavs.id },
             });
           } else {
-            await this.prisma.album.update({
+            return await this.prisma.album.update({
               where: { id },
               data: { favoriteId: favsAlbum[0].id },
             });
@@ -85,16 +75,17 @@ export class FavoritesService {
         const trackAlbum = await this.prisma.track.findFirst({
           where: { id },
         });
+        console.log(trackAlbum);
         if (trackAlbum) {
           const favsTrack = await this.prisma.favorite.findMany();
           if (!favsTrack.length) {
             const createdFavs = await this.prisma.favorite.create({ data: {} });
-            await this.prisma.track.update({
+            return await this.prisma.track.update({
               where: { id },
               data: { favoriteId: createdFavs.id },
             });
           } else {
-            await this.prisma.track.update({
+            return await this.prisma.track.update({
               where: { id },
               data: { favoriteId: favsTrack[0].id },
             });

@@ -2,13 +2,9 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import {
   ICreateUserDto,
   IUpdatePasswordDto,
-  IUser,
-  IUserResponse,
 } from '../interface/user.interface';
-import { v4 as uuidv4 } from 'uuid';
 import { ErrorResponseMessage } from '../../shared/error.interface';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateUserDto } from '../dto/createUser.dto';
 
 @Injectable()
 export class UserService {
@@ -41,7 +37,14 @@ export class UserService {
       data: { login, password },
     });
 
-    return user;
+    if (user) {
+      delete user.password;
+      return {
+        ...user,
+        createdAt: new Date(user.createdAt).getTime(),
+        updatedAt: new Date(user.createdAt).getTime(),
+      };
+    }
   }
 
   async updateUserPassword(
@@ -51,8 +54,7 @@ export class UserService {
     const userById = await this.prisma.user.findFirst({ where: { id } });
 
     if (userById) {
-      const oldUserData = userById;
-      if (oldUserData.password == oldPassword) {
+      if (userById.password == oldPassword) {
         await this.prisma.user.update({
           where: { id },
           data: {
@@ -66,7 +68,11 @@ export class UserService {
         });
         if (userResponse) {
           delete userResponse.password;
-          return userResponse;
+          return {
+            ...userResponse,
+            createdAt: new Date(userResponse.createdAt).getTime(),
+            updatedAt: new Date(userResponse.updatedAt).getTime(),
+          };
         }
       } else {
         throw new HttpException(
@@ -82,8 +88,9 @@ export class UserService {
     }
   }
   async deleteUser(id) {
-    const removedUser = await this.prisma.user.delete({ where: { id } });
-    if (removedUser) {
+    const haveUser = await this.prisma.user.findFirst({ where: { id } });
+    if (haveUser) {
+      const removedUser = await this.prisma.user.delete({ where: { id } });
       delete removedUser.password;
       return removedUser;
     }

@@ -5,12 +5,9 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
-import { ICreateAlbumDto, IAlbum } from '../interface/album.interface';
+import { ICreateAlbumDto } from '../interface/album.interface';
 import { ErrorResponseMessage } from '../../shared/error.interface';
-import { v4 as uuidv4 } from 'uuid';
 import { FavoritesService } from '../../favorites/services/favorites.service';
-import { TrackService } from '../../track/sevices/track.service';
-import { ArtistService } from '../../artist/services/artist.service';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -26,7 +23,7 @@ export class AlbumService {
   }
 
   async getAlbumByID(id: string) {
-    const findAlbum = this.prisma.album.findFirst({ where: { id } });
+    const findAlbum = await this.prisma.album.findFirst({ where: { id } });
     if (findAlbum) {
       return findAlbum;
     } else {

@@ -10,7 +10,6 @@ import {
   Delete,
 } from '@nestjs/common';
 import { UserService } from '../services/user.service';
-import { IUserResponse } from '../interface/user.interface';
 import { CreateUserDto } from '../dto/createUser.dto';
 import { UpdateUserDto } from '../dto/updateUser.dto';
 

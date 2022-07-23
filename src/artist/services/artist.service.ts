@@ -6,11 +6,8 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { ErrorResponseMessage } from '../../shared/error.interface';
-import { v4 as uuidv4 } from 'uuid';
-import { IArtist, ICreateArtistDto } from '../interface/artist.interface';
-import { AlbumService } from '../../album/services/album.service';
+import { ICreateArtistDto } from '../interface/artist.interface';
 import { FavoritesService } from '../../favorites/services/favorites.service';
-import { TrackService } from '../../track/sevices/track.service';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
