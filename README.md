@@ -76,3 +76,6 @@ https://www.tomray.dev/nestjs-docker-compose-postgres
 npx prisma migrate dev --name init
 
 npx prisma studio
+
+
+initial auth task
