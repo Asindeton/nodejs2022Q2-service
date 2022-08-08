@@ -8,3 +8,11 @@ export enum ErrorResponseMessage {
   IS_NOT_FAVORITE = 'Corresponding item is not favorite',
   ITEM_NOT_FOUNDED = 'Item does not exist',
 }
+export enum AuthErrors {
+  INCORRECT_BODY = 'Request body does not contain required fields',
+  NO_REFRESH_TOKEN = 'No refreshToken in body',
+  INVALID_CREDENTIALS = 'Incorrect login credentials',
+  UNAUTHORIZED = 'Unauthorized: invalid authentication credentials',
+  REFRESH_EXPIRED = 'Refresh token expired',
+  REFRESH_MALFORMED = 'Refresh token malformed',
+}

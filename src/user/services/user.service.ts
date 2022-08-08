@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import {
   ICreateUserDto,
   IUpdatePasswordDto,
+  IUser,
 } from '../interface/user.interface';
 import { ErrorResponseMessage } from '../../shared/error.interface';
 import { PrismaService } from 'src/prisma/prisma.service';
